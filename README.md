@@ -1,3 +1,81 @@
+# Meme Generator
+
+A simple, static web application that lets you create memes using the [Memegen API](https://api.memegen.link/).
+
+## 🌟 Features
+
+- 🎭 **Browse 200+ Meme Templates**: Search and browse through popular meme templates
+- ✏️ **Easy Text Input**: Add top and bottom text to your memes
+- 🖼️ **Multiple Formats**: Generate memes in PNG, JPG, GIF, or WebP formats
+- 🔗 **Shareable URLs**: Get direct links to your generated memes
+- 📱 **Responsive Design**: Works on desktop and mobile devices
+- ⚡ **Real-time Preview**: See your meme as you type
+- 🚀 **Static Hosting**: Works on GitHub Pages, no server required
+
+## 🚀 Live Demo
+
+Visit the live application: [https://skyspeak.github.io/memegen/](https://skyspeak.github.io/memegen/)
+
+## 🛠️ How to Use
+
+1. **Choose a Template**: Browse through the available meme templates
+2. **Search**: Use the search bar to find specific templates by name or keywords
+3. **Create Meme**: Click "Create Meme" on any template
+4. **Add Text**: Enter your top and bottom text in the form
+5. **Generate**: Click "Generate Meme" to create your meme
+6. **Share**: Copy the shareable URL or download the image
+
+## 🔧 Technical Details
+
+This is a **static web application** that:
+- Uses the [Memegen API](https://api.memegen.link/) for meme generation
+- Built with vanilla HTML, CSS, and JavaScript
+- Uses Bootstrap 5 for responsive design
+- No backend server required
+- Can be hosted on any static hosting service
+
+## 📁 Files
+
+- `index.html` - Main application file
+- `README.md` - This documentation
+
+## 🌐 Deployment
+
+This application is designed to work on any static hosting service:
+
+- **GitHub Pages** ✅ (Currently deployed)
+- **Netlify** ✅
+- **Vercel** ✅
+- **Firebase Hosting** ✅
+- **Any web server** ✅
+
+## 🔗 API Integration
+
+The app uses the Memegen API endpoints:
+- `GET https://api.memegen.link/templates` - Get all templates
+- `GET https://api.memegen.link/images/{template}/{text}.{format}` - Generate memes
+
+## 📱 Browser Support
+
+- Chrome 60+
+- Firefox 55+
+- Safari 12+
+- Edge 79+
+
+## 🤝 Contributing
+
+Feel free to fork this repository and submit pull requests for improvements!
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Credits
+
+- Built with the [Memegen API](https://api.memegen.link/)
+- Icons by [Font Awesome](https://fontawesome.com/)
+- Styling with [Bootstrap](https://getbootstrap.com/)
+
 An API to programmatically generate memes based solely on requested URLs.
 
 <span class="badges"><!-- badges -->
