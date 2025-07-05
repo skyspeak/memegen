@@ -1,0 +1,15 @@
+[
+    {
+        "id": "custom_1",
+        "name": "Sample Custom Meme",
+        "image_url": "https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=Custom+Meme",
+        "keywords": [
+            "sample",
+            "custom",
+            "test"
+        ],
+        "lines": 2,
+        "custom": true,
+        "created_at": "2025-07-04T16:00:00"
+    }
+]

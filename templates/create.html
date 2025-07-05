@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Create Meme{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        Create Your Meme
+                    </h2>
+                    <a href="/" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Templates
+                    </a>
+                </div>
+
+                <div id="templateInfo" class="text-center mb-4" style="display: none;">
+                    <h4 id="templateName" class="mb-2"></h4>
+                    <p id="templateDescription" class="text-muted"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-pen me-2"></i>
+                    Add Your Text
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="memeForm">
+                    <input type="hidden" id="templateId" name="template_id" value="{{ template_id }}">
+
+                    <div class="mb-3">
+                        <label for="text1" class="form-label">Top Text (Optional)</label>
+                        <input type="text" class="form-control" id="text1" name="text[]" placeholder="Enter top text..."
+                            maxlength="50">
+                        <div class="form-text">Leave empty if you only want bottom text</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="text2" class="form-label">Bottom Text</label>
+                        <input type="text" class="form-control" id="text2" name="text[]"
+                            placeholder="Enter bottom text..." maxlength="50" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="extension" class="form-label">Image Format</label>
+                        <select class="form-select" id="extension" name="extension">
+                            <option value="png">PNG (High Quality)</option>
+                            <option value="jpg">JPG (Smaller File)</option>
+                            <option value="gif">GIF (Animated)</option>
+                            <option value="webp">WebP (Modern)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-magic me-2"></i>
+                            Generate Meme
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    Preview
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="previewContainer">
+                    <div class="text-muted py-5">
+                        <i class="fas fa-image fa-3x mb-3"></i>
+                        <p>Your meme will appear here</p>
+                    </div>
+                </div>
+
+                <div id="resultContainer" style="display: none;">
+                    <div class="mb-3">
+                        <img id="memeImage" src="" alt="Generated Meme" class="img-fluid meme-preview">
+                    </div>
+
+                    <div class="share-url mb-3">
+                        <label class="form-label fw-bold">Shareable URL:</label>
+                        <div class="input-group">
+                            <input type="text" id="shareUrl" class="form-control" readonly>
+                            <button class="btn btn-outline-secondary copy-btn"
+                                onclick="copyToClipboard(document.getElementById('shareUrl').value)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a id="downloadLink" href="" class="btn btn-success" download>
+                            <i class="fas fa-download me-2"></i>Download Meme
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="window.location.reload()">
+                            <i class="fas fa-plus me-2"></i>Create Another
+                        </button>
+                    </div>
+                </div>
+
+                <div id="loadingContainer" class="loading text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted">Generating your meme...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="errorContainer" class="row mt-3" style="display: none;">
+    <div class="col-12">
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="errorMessage"></span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let templateData = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const templateId = document.getElementById('templateId').value;
+        if (templateId) {
+            loadTemplateDetails(templateId);
+        }
+
+        // Form submission
+        document.getElementById('memeForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            generateMeme();
+        });
+
+        // Real-time preview
+        document.getElementById('text1').addEventListener('input', updatePreview);
+        document.getElementById('text2').addEventListener('input', updatePreview);
+        document.getElementById('extension').addEventListener('change', updatePreview);
+    });
+
+    async function loadTemplateDetails(templateId) {
+        try {
+            const response = await fetch(`/api/templates/${templateId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                templateData = data;
+                displayTemplateInfo(data);
+                updatePreview();
+            } else {
+                showError('Failed to load template details: ' + data.error);
+            }
+        } catch (error) {
+            showError('Failed to load template details: ' + error.message);
+        }
+    }
+
+    function displayTemplateInfo(data) {
+        const infoDiv = document.getElementById('templateInfo');
+        const nameDiv = document.getElementById('templateName');
+        const descDiv = document.getElementById('templateDescription');
+
+        nameDiv.textContent = data.name;
+        descDiv.textContent = `Template ID: ${data.id} • ${data.lines} line${data.lines !== 1 ? 's' : ''} of text`;
+
+        infoDiv.style.display = 'block';
+    }
+
+    function updatePreview() {
+        if (!templateData) return;
+
+        const text1 = document.getElementById('text1').value;
+        const text2 = document.getElementById('text2').value;
+        const extension = document.getElementById('extension').value;
+
+        if (!text2.trim()) {
+            // Show blank template
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+            <div class="text-center">
+                <img src="${templateData.blank}" alt="${templateData.name}" class="img-fluid meme-preview">
+                <p class="text-muted mt-2">Add text to see preview</p>
+            </div>
+        `;
+            return;
+        }
+
+        // Build preview URL with a small delay to avoid too many requests
+        clearTimeout(window.previewTimeout);
+        window.previewTimeout = setTimeout(() => {
+            let previewUrl = `https://api.memegen.link/images/${templateData.id}`;
+
+            if (text1.trim()) {
+                previewUrl += `/${encodeURIComponent(text1.trim().replace(/ /g, '_'))}`;
+            }
+            previewUrl += `/${encodeURIComponent(text2.trim().replace(/ /g, '_'))}.${extension}`;
+
+            // Update preview with actual generated image
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = `
+            <div class="text-center">
+                <img src="${previewUrl}" alt="Meme Preview" class="img-fluid meme-preview" 
+                     onload="this.style.opacity='1'" style="opacity: 0; transition: opacity 0.3s;">
+                <p class="text-muted mt-2 small">Live preview - click Generate for final version</p>
+            </div>
+        `;
+        }, 500); // 500ms delay to avoid too many API calls
+    }
+
+    async function generateMeme() {
+        const form = document.getElementById('memeForm');
+        const formData = new FormData(form);
+
+        // Validate form
+        const text2 = formData.get('text[]');
+        if (!text2 || !text2.trim()) {
+            showError('Please enter at least bottom text for your meme.');
+            return;
+        }
+
+        showLoading();
+        hideError();
+
+        try {
+            const response = await fetch('/create', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                displayResult(result.url);
+            } else {
+                showError(result.error || 'Failed to generate meme');
+            }
+        } catch (error) {
+            showError('Failed to generate meme: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function displayResult(memeUrl) {
+        const resultContainer = document.getElementById('resultContainer');
+        const memeImage = document.getElementById('memeImage');
+        const shareUrl = document.getElementById('shareUrl');
+        const downloadLink = document.getElementById('downloadLink');
+
+        memeImage.src = memeUrl;
+        shareUrl.value = memeUrl;
+        downloadLink.href = memeUrl;
+
+        resultContainer.style.display = 'block';
+
+        // Scroll to result
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showLoading() {
+        document.getElementById('loadingContainer').style.display = 'block';
+        document.getElementById('resultContainer').style.display = 'none';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingContainer').style.display = 'none';
+    }
+
+    function showError(message) {
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+
+        errorMessage.textContent = message;
+        errorContainer.style.display = 'block';
+
+        // Scroll to error
+        errorContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideError() {
+        document.getElementById('errorContainer').style.display = 'none';
+    }
+</script>
+{% endblock %}

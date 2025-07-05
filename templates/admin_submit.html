@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Custom Meme{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">
+                        <i class="fas fa-plus-circle text-primary me-2"></i>
+                        Submit Custom Meme
+                    </h2>
+                    <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Instructions:</strong> Provide an image URL, name, and optional keywords. The meme will be
+                    available in the public gallery and searchable by users.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Meme Details
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" id="memeForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Meme Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="e.g., My Custom Meme"
+                            required>
+                        <div class="form-text">A descriptive name for your meme template</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label">Image URL *</label>
+                        <input type="url" class="form-control" id="image_url" name="image_url"
+                            placeholder="https://example.com/image.jpg" required>
+                        <div class="form-text">Direct link to the image (JPG, PNG, GIF supported)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="keywords" class="form-label">Keywords (Optional)</label>
+                        <input type="text" class="form-control" id="keywords" name="keywords"
+                            placeholder="funny, custom, awesome">
+                        <div class="form-text">Comma-separated keywords to help users find your meme</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>
+                            Submit Meme
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    Preview
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="previewContainer">
+                    <div class="text-muted py-5">
+                        <i class="fas fa-image fa-3x mb-3"></i>
+                        <p>Image preview will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Tips
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use high-quality images
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Choose descriptive names
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Add relevant keywords
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Ensure image URLs are public
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const imageUrlInput = document.getElementById('image_url');
+        const previewContainer = document.getElementById('previewContainer');
+
+        // Update preview when image URL changes
+        imageUrlInput.addEventListener('input', function () {
+            const url = this.value.trim();
+
+            if (url && isValidUrl(url)) {
+                previewContainer.innerHTML = `
+                <div class="text-center">
+                    <img src="${url}" alt="Meme Preview" class="img-fluid meme-preview" 
+                         style="max-height: 200px; object-fit: cover; border-radius: 8px;"
+                         onerror="this.parentElement.innerHTML='<div class=\\'text-danger\\'><i class=\\'fas fa-exclamation-triangle\\'></i> Image not found</div>'">
+                </div>
+            `;
+            } else {
+                previewContainer.innerHTML = `
+                <div class="text-muted py-5">
+                    <i class="fas fa-image fa-3x mb-3"></i>
+                    <p>Enter a valid image URL</p>
+                </div>
+            `;
+            }
+        });
+
+        // Form validation
+        document.getElementById('memeForm').addEventListener('submit', function (e) {
+            const name = document.getElementById('name').value.trim();
+            const imageUrl = document.getElementById('image_url').value.trim();
+
+            if (!name) {
+                e.preventDefault();
+                alert('Please enter a meme name');
+                return;
+            }
+
+            if (!imageUrl) {
+                e.preventDefault();
+                alert('Please enter an image URL');
+                return;
+            }
+
+            if (!isValidUrl(imageUrl)) {
+                e.preventDefault();
+                alert('Please enter a valid image URL');
+                return;
+            }
+        });
+    });
+
+    function isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+</script>
+{% endblock %}

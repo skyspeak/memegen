@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Meme Generator - Choose Template{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-laugh-squint text-primary me-3"></i>
+                    Meme Generator
+                </h1>
+                <p class="lead text-muted">Choose from hundreds of popular meme templates and create your own!</p>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control search-box border-start-0"
+                                placeholder="Search templates..." autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="fas fa-images me-2"></i>
+                Available Templates (<span id="templateCount">0</span>)
+            </h5>
+            <div class="loading">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Loading templates...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="templatesContainer" class="row g-3">
+    <!-- Templates will be loaded here -->
+</div>
+
+<div id="noResults" class="text-center py-5" style="display: none;">
+    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">No templates found</h4>
+    <p class="text-muted">Try adjusting your search terms</p>
+</div>
+
+<!-- Template Card Template -->
+<template id="templateCardTemplate">
+    <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="card template-card h-100" data-template-id="">
+            <div class="card-body p-3">
+                <div class="text-center mb-3">
+                    <img src="" alt="" class="img-fluid meme-preview" style="max-height: 150px; object-fit: cover;">
+                </div>
+                <h6 class="card-title text-center mb-2"></h6>
+                <p class="card-text small text-muted text-center mb-3"></p>
+                <div class="custom-meme-badge" style="display: none;">
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-star me-1"></i>Custom
+                    </span>
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-sm create-meme-btn">
+                        <i class="fas fa-edit me-1"></i>Create Meme
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allTemplates = [];
+    let filteredTemplates = [];
+
+    // Load templates on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        loadTemplates();
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', function () {
+            filterTemplates(this.value);
+        });
+    });
+
+    async function loadTemplates() {
+        showLoading();
+        try {
+            const response = await fetch('/api/templates');
+            const templates = await response.json();
+
+            if (response.ok) {
+                allTemplates = templates;
+                filteredTemplates = templates;
+                displayTemplates(templates);
+                updateTemplateCount(templates.length);
+            } else {
+                showError('Failed to load templates: ' + templates.error);
+            }
+        } catch (error) {
+            showError('Failed to load templates: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function filterTemplates(searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filteredTemplates = allTemplates.filter(template =>
+            template.name.toLowerCase().includes(term) ||
+            template.id.toLowerCase().includes(term) ||
+            (template.keywords && template.keywords.some(keyword =>
+                keyword.toLowerCase().includes(term)
+            ))
+        );
+
+        displayTemplates(filteredTemplates);
+        updateTemplateCount(filteredTemplates.length);
+    }
+
+    function displayTemplates(templates) {
+        const container = document.getElementById('templatesContainer');
+        const noResults = document.getElementById('noResults');
+        const template = document.getElementById('templateCardTemplate');
+
+        container.innerHTML = '';
+
+        if (templates.length === 0) {
+            noResults.style.display = 'block';
+            return;
+        }
+
+        noResults.style.display = 'none';
+
+        templates.forEach(templateData => {
+            const clone = template.content.cloneNode(true);
+            const card = clone.querySelector('.template-card');
+            const img = clone.querySelector('img');
+            const title = clone.querySelector('.card-title');
+            const text = clone.querySelector('.card-text');
+            const btn = clone.querySelector('.create-meme-btn');
+
+            card.dataset.templateId = templateData.id;
+            img.src = templateData.blank;
+            img.alt = templateData.name;
+            title.textContent = templateData.name;
+            text.textContent = `${templateData.lines} line${templateData.lines !== 1 ? 's' : ''} of text`;
+
+            // Show custom badge if it's a custom meme
+            const customBadge = clone.querySelector('.custom-meme-badge');
+            if (templateData.custom) {
+                customBadge.style.display = 'block';
+            }
+
+            btn.addEventListener('click', function () {
+                window.location.href = `/create?template_id=${templateData.id}`;
+            });
+
+            container.appendChild(clone);
+        });
+    }
+
+    function updateTemplateCount(count) {
+        document.getElementById('templateCount').textContent = count;
+    }
+
+    function showError(message) {
+        const container = document.getElementById('templatesContainer');
+        container.innerHTML = `
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+            </div>
+        </div>
+    `;
+    }
+</script>
+{% endblock %}
