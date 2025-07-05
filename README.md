@@ -72,9 +72,16 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🙏 Credits
 
-- Built with the [Memegen API](https://api.memegen.link/)
-- Icons by [Font Awesome](https://fontawesome.com/)
-- Styling with [Bootstrap](https://getbootstrap.com/)
+- **Powered by**: [jacebrowning/memegen](https://github.com/jacebrowning/memegen) - The free and open source API to generate memes
+- **API**: [Memegen API](https://api.memegen.link/) - Stateless meme generation service
+- **Icons**: [Font Awesome](https://fontawesome.com/)
+- **Styling**: [Bootstrap](https://getbootstrap.com/)
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+**Note**: This is a frontend wrapper for the [Memegen API](https://api.memegen.link/). The core meme generation functionality is provided by the original [jacebrowning/memegen](https://github.com/jacebrowning/memegen) project.
 
 An API to programmatically generate memes based solely on requested URLs.
 
